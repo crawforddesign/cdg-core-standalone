@@ -1,0 +1,1264 @@
+/**
+ * CDG Core Admin — Shadcn-inspired design system
+ * Scoped under .cdg-v2 to avoid conflicts with WP admin styles.
+ */
+
+/* ── Variables ── */
+.cdg-v2 {
+  --cdg-surface: #ffffff;
+  --cdg-muted: #f4f4f5;
+  --cdg-muted-fg: #71717a;
+  --cdg-border: #e4e4e7;
+  --cdg-fg: #09090b;
+  --cdg-fg-2: #3f3f46;
+  --cdg-primary: #18181b;
+  --cdg-primary-fg: #fafafa;
+  --cdg-ring: rgba(0, 0, 0, 0.06);
+  --cdg-radius: 6px;
+  --cdg-radius-lg: 10px;
+  --cdg-sidebar-w: 200px;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
+    ui-sans-serif, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cdg-fg);
+}
+
+.cdg-v2 * {
+  box-sizing: border-box;
+}
+.cdg-v2 h1,
+.cdg-v2 h2,
+.cdg-v2 h3 {
+  font-weight: 600;
+  margin: 0;
+}
+.cdg-v2 a {
+  text-decoration: none;
+}
+.cdg-v2 input,
+.cdg-v2 select,
+.cdg-v2 textarea,
+.cdg-v2 button {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* ── Page Header ── */
+.cdg-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  padding-top: 10px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cdg-page-title h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--cdg-fg);
+  line-height: 1;
+  padding: 0;
+}
+
+.cdg-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--cdg-muted);
+  color: var(--cdg-muted-fg);
+  border: 1px solid var(--cdg-border);
+  line-height: 1.5;
+}
+
+/* ── Success notice (replaces WP default) ── */
+.cdg-success-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #15803d;
+}
+
+.cdg-success-notice svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ── Body layout ── */
+.cdg-body-layout {
+  display: flex !important;
+  gap: 24px;
+  align-items: flex-start;
+  float: none !important; /* WP admin uses float layout; don't inherit it */
+}
+
+/* ── Sidebar ── */
+.cdg-sidebar {
+  width: var(--cdg-sidebar-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 52px; /* WP admin bar (32px) + some breathing room */
+}
+
+.cdg-sidebar-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cdg-muted-fg);
+  padding: 0 10px 8px;
+}
+
+.cdg-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--cdg-radius);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--cdg-fg-2) !important;
+  text-decoration: none !important;
+  transition: background 0.1s, color 0.1s;
+  line-height: 1;
+  box-shadow: none !important;
+}
+
+.cdg-nav-item:hover {
+  background: var(--cdg-muted);
+  color: var(--cdg-fg) !important;
+}
+
+.cdg-nav-item.cdg-active {
+  background: var(--cdg-muted);
+  color: var(--cdg-fg) !important;
+  font-weight: 600;
+}
+
+.cdg-nav-item svg {
+  width: 16px !important;
+  height: 16px !important;
+  opacity: 0.65;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.cdg-nav-item.cdg-active svg {
+  opacity: 1;
+}
+
+/* ── Content column ── */
+.cdg-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Cards ── */
+.cdg-card {
+  background: var(--cdg-surface);
+  border: 1px solid var(--cdg-border);
+  border-radius: var(--cdg-radius-lg);
+  overflow: hidden;
+}
+
+.cdg-card-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--cdg-fg);
+  line-height: 1.3;
+}
+
+.cdg-card-desc {
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: var(--cdg-muted-fg);
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.cdg-card-desc code,
+.cdg-setting-hint code {
+  font-size: 11.5px;
+  background: var(--cdg-muted);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: "Courier New", Consolas, monospace;
+  color: var(--cdg-fg-2);
+  border: 1px solid var(--cdg-border);
+}
+
+.cdg-card-body {
+  padding: 0;
+}
+
+/* ── Setting rows ── */
+.cdg-setting-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 20px;
+  gap: 32px;
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-setting-row:last-child {
+  border-bottom: none;
+}
+
+.cdg-setting-row.cdg-indented {
+  padding-left: 40px;
+  background: #fafafa;
+}
+
+.cdg-setting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cdg-setting-label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--cdg-fg);
+  line-height: 1.3;
+}
+
+.cdg-setting-hint {
+  font-size: 12.5px;
+  color: var(--cdg-muted-fg);
+  margin-top: 3px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.cdg-setting-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Toggle switches ── */
+.cdg-switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* WP admin 6.x force-styles checkboxes — !important needed to win */
+.cdg-switch input[type="checkbox"] {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.cdg-switch-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--cdg-border);
+  border-radius: 100px;
+  transition: background 0.15s;
+}
+
+.cdg-switch-slider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s;
+}
+
+.cdg-switch input:checked + .cdg-switch-slider {
+  background: var(--cdg-primary);
+}
+
+.cdg-switch input:checked + .cdg-switch-slider::after {
+  transform: translateX(16px);
+}
+
+.cdg-switch input:focus-visible + .cdg-switch-slider {
+  outline: 2px solid var(--cdg-primary);
+  outline-offset: 2px;
+}
+
+/* ── Radio cards ── */
+.cdg-radio-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cdg-radio-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--cdg-border);
+  border-radius: var(--cdg-radius);
+  cursor: pointer;
+  background: var(--cdg-surface);
+  transition: border-color 0.1s, background 0.1s;
+  line-height: 1;
+}
+
+.cdg-radio-card input[type="radio"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.cdg-radio-card:has(input:checked) {
+  border-color: var(--cdg-primary);
+  background: #fafafa;
+}
+
+.cdg-radio-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cdg-border);
+  flex-shrink: 0;
+  margin-top: 2px;
+  position: relative;
+  background: var(--cdg-surface);
+  transition: border-color 0.1s, background 0.1s;
+}
+
+.cdg-radio-card:has(input:checked) .cdg-radio-dot {
+  border-color: var(--cdg-primary);
+  background: var(--cdg-primary);
+}
+
+.cdg-radio-card:has(input:checked) .cdg-radio-dot::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.cdg-radio-text strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cdg-fg);
+  margin-bottom: 2px;
+}
+
+.cdg-radio-text span {
+  font-size: 12px;
+  color: var(--cdg-muted-fg);
+  display: block;
+}
+
+/* Inline number input inside a radio card (post revisions) */
+.cdg-input-inline {
+  display: inline !important;
+  width: 56px !important;
+  height: 24px !important;
+  padding: 0 6px !important;
+  font-size: 12px !important;
+  border: 1px solid var(--cdg-border) !important;
+  border-radius: 4px !important;
+  margin: 0 4px !important;
+  vertical-align: middle !important;
+  background: var(--cdg-surface) !important;
+  color: var(--cdg-fg) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.cdg-input-inline:focus {
+  border-color: var(--cdg-primary) !important;
+}
+
+/* ── Checkbox grid (head cleanup, dashboard widgets) ── */
+.cdg-check-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 16px 20px;
+}
+
+/* Single-column list (inside a setting-row) */
+.cdg-check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 200px;
+}
+
+.cdg-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--cdg-fg-2);
+  cursor: pointer;
+  line-height: 1;
+  padding: 1px 0;
+}
+
+/* Visually hide the native checkbox; WP admin 6.x needs !important to override */
+.cdg-check-item input[type="checkbox"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.cdg-check-box {
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--cdg-border);
+  border-radius: 3px;
+  background: var(--cdg-surface);
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.cdg-check-item input:checked + .cdg-check-box {
+  background: var(--cdg-primary);
+  border-color: var(--cdg-primary);
+}
+
+.cdg-check-item input:checked + .cdg-check-box::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 4px;
+  width: 5px;
+  height: 8px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(40deg);
+}
+
+.cdg-check-item input:focus-visible + .cdg-check-box {
+  outline: 2px solid var(--cdg-primary);
+  outline-offset: 2px;
+}
+
+.cdg-check-item .cdg-widget-id {
+  font-size: 11px;
+  color: var(--cdg-muted-fg);
+  font-family: "Courier New", monospace;
+  background: var(--cdg-muted);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--cdg-border);
+  margin-left: 4px;
+}
+
+/* ── Sub-section labels (inside card body) ── */
+.cdg-sub-section {
+  padding: 9px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cdg-muted-fg);
+  background: var(--cdg-muted);
+  border-bottom: 1px solid var(--cdg-border);
+  border-top: 1px solid var(--cdg-border);
+}
+
+.cdg-sub-section span {
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cdg-card-body > .cdg-sub-section:first-child {
+  border-top: none;
+}
+
+/* ── Form inputs ── */
+.cdg-input {
+  height: 34px;
+  border: 1px solid var(--cdg-border);
+  border-radius: var(--cdg-radius);
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--cdg-fg);
+  background: var(--cdg-surface);
+  outline: none;
+  transition: border-color 0.1s, box-shadow 0.1s;
+  display: block;
+  width: 100%;
+  box-shadow: none;
+}
+
+.cdg-input:focus {
+  border-color: var(--cdg-primary);
+  box-shadow: 0 0 0 2px var(--cdg-ring);
+}
+
+.cdg-input-sm {
+  width: 80px;
+}
+.cdg-input-w100 {
+  width: 100px;
+}
+
+textarea.cdg-input {
+  height: auto;
+  padding: 8px 10px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.cdg-input-mono {
+  font-family: "Courier New", Consolas, monospace !important;
+  font-size: 12px !important;
+}
+
+/* Full-width textarea section (admin CSS) */
+.cdg-textarea-wrap {
+  padding: 16px 20px;
+}
+
+/* ── Select ── */
+.cdg-select {
+  height: 34px;
+  border: 1px solid var(--cdg-border);
+  border-radius: var(--cdg-radius);
+  padding: 0 28px 0 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--cdg-fg);
+  background-color: var(--cdg-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  min-width: 190px;
+  transition: border-color 0.1s;
+  box-shadow: none;
+}
+
+.cdg-select:focus {
+  border-color: var(--cdg-primary);
+  box-shadow: 0 0 0 2px var(--cdg-ring);
+}
+
+/* ── Color swatch row ── */
+.cdg-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cdg-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  border: 1px solid var(--cdg-border);
+  flex-shrink: 0;
+  background-color: #f34f27;
+}
+
+.cdg-color-row .cdg-input {
+  width: 110px;
+  display: inline-block;
+}
+
+/* ── Buttons ── */
+.cdg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--cdg-radius);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.1s, background 0.1s;
+  border: none;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.cdg-btn-primary {
+  background: var(--cdg-primary);
+  color: var(--cdg-primary-fg) !important;
+}
+
+.cdg-btn-primary:hover {
+  opacity: 0.85;
+}
+
+.cdg-btn-secondary {
+  background: var(--cdg-surface);
+  color: var(--cdg-fg);
+  border: 1px solid var(--cdg-border) !important;
+}
+
+.cdg-btn-secondary:hover {
+  background: var(--cdg-muted);
+}
+
+.cdg-btn-link {
+  background: transparent;
+  color: var(--cdg-muted-fg);
+  padding: 0 8px;
+}
+
+.cdg-btn-link:hover {
+  color: #b91c1c;
+}
+
+/* ── Media picker ── */
+.cdg-media-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cdg-media-preview {
+  width: 160px;
+  height: 60px;
+  border: 1px solid var(--cdg-border);
+  border-radius: var(--cdg-radius);
+  overflow: hidden;
+  background: var(--cdg-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cdg-media-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.cdg-media-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Notices ── */
+.cdg-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--cdg-radius);
+  font-size: 13px;
+  line-height: 1.45;
+  border: 1px solid;
+}
+
+.cdg-notice svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: inline-block;
+}
+
+.cdg-notice-info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+.cdg-notice-warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+/* ── Empty state ── */
+.cdg-empty {
+  padding: 16px 20px;
+  font-size: 13px;
+  color: var(--cdg-muted-fg);
+  font-style: italic;
+}
+
+/* ── Sidebar save button ── */
+.cdg-sidebar-save {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cdg-border);
+}
+
+.cdg-btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Conditional disabled state ── */
+.cdg-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── Guide tab ── */
+.cdg-guide-body {
+  padding: 20px;
+}
+
+.cdg-guide-intro {
+  font-size: 13.5px;
+  color: var(--cdg-fg-2);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.cdg-guide-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cdg-guide-item-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--cdg-fg);
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+
+.cdg-guide-item-desc {
+  font-size: 13px;
+  color: var(--cdg-muted-fg);
+  line-height: 1.6;
+}
+
+.cdg-guide-item-desc code {
+  font-size: 11.5px;
+  background: var(--cdg-muted);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: "Courier New", Consolas, monospace;
+  color: var(--cdg-fg-2);
+  border: 1px solid var(--cdg-border);
+}
+
+.cdg-guide-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--cdg-radius);
+  padding: 11px 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #1d4ed8;
+  margin-top: 18px;
+}
+
+.cdg-guide-note svg {
+  width: 14px !important;
+  height: 14px !important;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cdg-guide-link {
+  color: var(--cdg-fg);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cdg-guide-link:hover {
+  color: var(--cdg-primary);
+}
+
+/* Hide the sidebar Save button on the Guide tab (read-only) */
+.cdg-v2[data-tab="guide"] .cdg-sidebar-save {
+  display: none;
+}
+
+/* ── Sidebar Menu Items grid ── */
+.cdg-si-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Track count assumes exactly 3 target roles (Administrator, Manager,
+   Staff) — see CDG_Core_Roles::target_roles(). Update this if that ever
+   changes. */
+.cdg-si-row {
+  display: grid;
+  grid-template-columns: 1fr 240px 120px 120px 120px;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-si-row:last-child {
+  border-bottom: none;
+}
+
+.cdg-si-row-head {
+  padding: 8px 20px;
+  background: var(--cdg-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cdg-muted-fg);
+}
+
+.cdg-si-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--cdg-fg);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cdg-si-main .dashicons {
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+  color: var(--cdg-muted-fg);
+  flex-shrink: 0;
+}
+
+.cdg-si-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cdg-si-role-col {
+  display: flex;
+  justify-content: center;
+}
+
+/* Checkbox-only variant of .cdg-check-item — no visible label text. */
+.cdg-check-solo {
+  gap: 0;
+}
+
+/* ── Submenu expand/collapse ── */
+.cdg-si-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--cdg-muted-fg);
+}
+
+.cdg-si-toggle svg {
+  transition: transform 0.15s ease;
+}
+
+.cdg-si-row.cdg-si-parent-open .cdg-si-toggle svg {
+  transform: rotate(90deg);
+}
+
+.cdg-si-toggle-spacer {
+  display: inline-block;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.cdg-si-row.cdg-si-child {
+  display: none;
+  background: var(--cdg-muted);
+}
+
+.cdg-si-row.cdg-si-child.cdg-si-open {
+  display: grid;
+}
+
+/* Indent child titles to line up under the parent's title (18px toggle +
+   10px gap + 20px icon + 10px gap = 58px). */
+.cdg-si-main-child {
+  padding-left: 58px;
+}
+
+/* ── Plugin Visibility grid (Sidebar tab) ──
+   Column count varies with the number of hideable roles (native WP roles
+   plus Manager/Staff once custom roles are enabled), so — unlike the fixed
+   4-column .cdg-si-row grid above — this uses flexbox with a fixed
+   flex-basis per role column instead of a hard-coded column count. */
+.cdg-pv-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.cdg-pv-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-pv-row:last-child {
+  border-bottom: none;
+}
+
+.cdg-pv-row-head {
+  padding: 8px 20px;
+  background: var(--cdg-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cdg-muted-fg);
+}
+
+.cdg-pv-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cdg-fg);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cdg-pv-main .cdg-widget-id {
+  font-size: 11px;
+  color: var(--cdg-muted-fg);
+  font-family: "Courier New", monospace;
+  background: var(--cdg-surface);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--cdg-border);
+}
+
+.cdg-pv-role-col {
+  flex: 0 0 92px;
+  display: flex;
+  justify-content: center;
+}
+
+.cdg-pv-row-head .cdg-pv-role-col {
+  text-align: center;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.cdg-si-title-child {
+  color: var(--cdg-fg-2);
+  font-weight: 400;
+}
+
+/* ── Custom Menu Links repeater ── */
+.cdg-custom-link-item {
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-custom-link-item:last-child {
+  border-bottom: none;
+}
+
+.cdg-custom-link-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+}
+
+.cdg-custom-link-title {
+  flex: 1;
+  height: 32px !important;
+  font-size: 13px !important;
+}
+
+.cdg-custom-link-body {
+  padding: 0 0 4px;
+  border-top: 1px solid var(--cdg-border);
+  background: var(--cdg-muted);
+}
+
+/* ── Icon picker button ── */
+.cdg-icon-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--cdg-border);
+  border-radius: 6px;
+  background: var(--cdg-bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cdg-icon-picker-btn:hover {
+  border-color: var(--cdg-accent, #3858e9);
+}
+
+.cdg-icon-picker-btn .dashicons {
+  font-size: 18px;
+  width: 20px;
+  height: 20px;
+  color: var(--cdg-fg);
+}
+
+/* ── Icon picker floating panel ── */
+.cdg-icon-panel {
+  position: absolute;
+  z-index: 9999;
+  background: var(--cdg-bg);
+  border: 1px solid var(--cdg-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  padding: 10px;
+  width: 280px;
+}
+
+.cdg-icon-search {
+  width: 100%;
+  height: 30px;
+  font-size: 12px;
+  padding: 0 8px;
+  border: 1px solid var(--cdg-border);
+  border-radius: 6px;
+  background: var(--cdg-muted);
+  color: var(--cdg-fg);
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+
+.cdg-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.cdg-icon-grid button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.cdg-icon-grid button:hover,
+.cdg-icon-grid button.cdg-icon-active {
+  background: var(--cdg-muted);
+  border-color: var(--cdg-border);
+}
+
+.cdg-icon-grid .dashicons {
+  font-size: 16px;
+  width: 18px;
+  height: 18px;
+  color: var(--cdg-fg);
+}
+
+/* ── Remove button ── */
+.cdg-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--cdg-border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  color: var(--cdg-muted-fg);
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.cdg-btn-icon:hover {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+/* ── Code Snippets repeater ── */
+.cdg-snippet-add-wrap {
+  padding: 14px 20px;
+  border-top: 1px solid var(--cdg-border);
+}
+
+.cdg-snippets-empty {
+  padding: 24px 20px;
+  font-size: 13px;
+  color: var(--cdg-muted-fg);
+  font-style: italic;
+  text-align: center;
+}
+
+.cdg-snippet-item {
+  padding: 20px;
+  border-bottom: 1px solid var(--cdg-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cdg-snippet-top-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cdg-snippet-top-row .cdg-input {
+  flex: 1;
+}
+
+.cdg-snippet-top-row .cdg-select {
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.cdg-snippet-location-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cdg-snippet-location-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cdg-fg-2);
+  flex-shrink: 0;
+}
+
+.cdg-snippet-location-row .cdg-radio-group {
+  flex-wrap: nowrap;
+}
+
+.cdg-snippet-code {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.cdg-snippet-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Responsive ── */
+@media (max-width: 782px) {
+  .cdg-body-layout {
+    flex-direction: column;
+  }
+
+  .cdg-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    position: static;
+  }
+
+  .cdg-sidebar-label {
+    display: none;
+  }
+
+  .cdg-sidebar-save {
+    width: 100%;
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .cdg-check-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cdg-setting-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cdg-radio-group {
+    flex-direction: column;
+    width: 100%;
+  }
+}
