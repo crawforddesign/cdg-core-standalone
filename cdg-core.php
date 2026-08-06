@@ -3,7 +3,7 @@
  * Plugin Name: CDG Core Standalone
  * Plugin URI: https://crawforddesigngroup.com
  * Description: WordPress optimizations, security hardening, and agency features for Crawford Design Group client sites. Divi-free variant with no theme dependency.
- * Version: 1.3.1
+ * Version: 1.3.2
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Author: Crawford Design Group
@@ -36,7 +36,7 @@ if (!class_exists("CDG_Core")) {
 /**
  * Plugin Constants
  */
-define("CDG_CORE_VERSION", "1.3.1");
+define("CDG_CORE_VERSION", "1.3.2");
 define("CDG_CORE_DIR", plugin_dir_path(__FILE__));
 define("CDG_CORE_URL", plugin_dir_url(__FILE__));
 define("CDG_CORE_BASENAME", plugin_basename(__FILE__));
@@ -204,9 +204,9 @@ input[type=text], input[type=email], input[type=url], input[type=password], inpu
     "code_snippets" => [],
 
     // Roles
-    "enable_custom_roles" => false, // creates Agency / Manager / Staff roles
+    "enable_custom_roles" => false, // creates Manager / Staff roles; also required for agency_email below
     "hide_native_roles"   => false, // hides Editor/Author/Contributor/Subscriber from the role picker (requires enable_custom_roles); Administrator always stays selectable
-    "agency_email" => CDG_Core_Roles::DEFAULT_AGENCY_EMAIL, // account with this email is auto-switched to Agency, replacing its current role
+    "agency_email" => CDG_Core_Roles::DEFAULT_AGENCY_EMAIL, // account with this email is auto-switched to native Administrator, replacing its current role
 
     // Sidebar management
     "sidebar_entry_names"    => [],   // menu_slug => display_name (global rename)
@@ -216,7 +216,7 @@ input[type=text], input[type=email], input[type=url], input[type=password], inpu
     "custom_menu_links"      => [],   // [{id, title, icon, link, target, hidden_for:[role_slug,...]}]
 
     // Plugin visibility (Sidebar tab)
-    "hidden_plugins" => [],   // plugin_file => [role_slug, ...] — hidden from those roles; Agency always sees every plugin
+    "hidden_plugins" => [],   // plugin_file => [role_slug, ...] — hidden from those roles; the agency account always sees every plugin
 
     // Login Page
     "login_logo_id" => 0,
@@ -423,8 +423,10 @@ input[type=text], input[type=email], input[type=url], input[type=password], inpu
     // Defaults (Comments, Projects)
     new CDG_Core_Defaults($this);
 
-    // Roles — Agency / Manager / Staff. Instantiated unconditionally, but
-    // it's a no-op unless "Enable Custom Roles" is turned on in the Roles tab.
+    // Roles — Manager / Staff, plus Agency Email auto-assignment to native
+    // Administrator. Instantiated unconditionally, but the role-creation
+    // side is a no-op unless "Enable Custom Roles" is turned on in the
+    // Roles tab (the legacy-role migration inside it always runs).
     new CDG_Core_Roles($this);
 
     // Features

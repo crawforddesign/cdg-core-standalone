@@ -1440,11 +1440,11 @@ class CDG_Core_Admin
   {
     $this->card(
       "Custom Roles",
-      "Creates dedicated roles for CDG staff and client users, separate from the default WordPress roles. Off by default.",
+      "Creates dedicated Manager/Staff roles for client users, and auto-assigns native Administrator to CDG staff by email, separate from the default WordPress role-assignment flow. Off by default.",
       function () use ($s) {
         $this->row(
           "Enable Custom Roles",
-          "Registers three roles: <strong>Agency</strong> (clone of Administrator &#8212; full access, for CDG staff), <strong>Manager</strong> (Administrator capabilities minus plugin/theme installs, user management, and core updates), and <strong>Staff</strong> (clone of Editor &#8212; content only). Required for the Sidebar tab's role-based hide controls and the Agency Email auto-assignment below to have any effect.",
+          "Registers two roles: <strong>Manager</strong> (Administrator capabilities minus plugin/theme installs, user management, and core updates) and <strong>Staff</strong> (clone of Editor &#8212; content only). Also required for the Agency Email auto-assignment below to have any effect.",
           $this->sw("enable_custom_roles", $s["enable_custom_roles"])
         );
 
@@ -1453,21 +1453,21 @@ class CDG_Core_Admin
 
         $this->row(
           "Agency Email",
-          "The account with this email is automatically switched to the <strong>Agency</strong> role &#8212; replacing whatever role it currently has &#8212; on login, on account creation, and whenever its profile is edited. Agency is never selectable from a dropdown; this is the only way to assign it.",
+          "The account with this email is automatically switched to WordPress's native <strong>Administrator</strong> role &#8212; not a lookalike clone &#8212; replacing whatever role it currently has, on login, on account creation, and whenever its profile is edited. It also always bypasses this plugin's own Sidebar tab hide rules (Sidebar Menu Items, Custom Menu Links, and Plugin Visibility), even ones configured against Administrator.",
           '<input type="email" name="agency_email" value="' . esc_attr($s["agency_email"]) . '" placeholder="' . esc_attr(CDG_Core_Roles::DEFAULT_AGENCY_EMAIL) . '" class="cdg-input">',
           true
         );
 
         $this->row(
           "Hide Default WordPress Roles",
-          "Removes Editor, Author, Contributor, and Subscriber from the Add User / Edit User / Bulk Edit role dropdowns, so only Administrator, Manager, and Staff can be newly assigned. Administrator always stays selectable, and Agency is never selectable regardless of this toggle &#8212; see Agency Email above. Existing users keep whatever role they already have &#8212; nothing is reassigned automatically.",
+          "Removes Editor, Author, Contributor, and Subscriber from the Add User / Edit User / Bulk Edit role dropdowns, so only Administrator, Manager, and Staff can be newly assigned. Administrator always stays selectable there. Existing users keep whatever role they already have &#8212; nothing is reassigned automatically.",
           $this->sw("hide_native_roles", $s["hide_native_roles"]),
           true
         );
 
         $this->row(
           "Rebuild Roles",
-          "Re-clones Agency, Manager, and Staff from the site's <em>current</em> Administrator/Editor capabilities. Roles are normally only (re)created when missing, so a role created before another plugin (e.g. Gravity Forms) added its own capabilities to Administrator won't pick those up on its own &#8212; use this to force a refresh if Agency or Manager is missing menu items or access another plugin grants to Administrator.",
+          "Re-clones Manager and Staff from the site's <em>current</em> Administrator/Editor capabilities. Roles are normally only (re)created when missing, so a role created before another plugin added its own capabilities to Administrator won't pick those up on its own &#8212; use this to force a refresh if Manager or Staff is missing access another plugin grants to Administrator/Editor.",
           '<button type="submit" name="cdg_core_rebuild_roles" value="1" class="cdg-btn cdg-btn-secondary">' .
             esc_html__("Rebuild Roles", "cdg-core") .
             "</button>",

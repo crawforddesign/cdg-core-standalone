@@ -2,19 +2,11 @@
 /**
  * Roles
  *
- * Opt-in (Roles tab, "Enable Custom Roles") registration of three CDG
+ * Opt-in (Roles tab, "Enable Custom Roles") registration of two CDG
  * client-site roles, plus an optional filter that hides native WordPress
  * roles from the role-assignment dropdown so future users are always put
- * into one of these three buckets.
+ * into one of these buckets.
  *
- * - Agency  (cdg_agency)         — CDG staff. Clone of Administrator.
- *                                   Always bypasses sidebar hide rules.
- *                                   Never manually assignable — instead,
- *                                   whichever account's email matches the
- *                                   configured "Agency Email" (Roles tab)
- *                                   is automatically switched to this role
- *                                   on login, registration, and profile
- *                                   edits, replacing whatever role it had.
  * - Manager (cdg_client_manager) — Administrator capabilities minus
  *                                   plugin/theme install-and-edit, user
  *                                   management, core updates, and the
@@ -24,18 +16,30 @@
  * (Role slugs keep their original "client_manager" / "client_staff" values
  * for stability — only the display labels changed.)
  *
+ * CDG staff ("Agency") are handled separately, and deliberately are *not*
+ * a cloned role: whichever account's email matches the configured "Agency
+ * Email" (Roles tab) is automatically switched to WordPress's native
+ * Administrator role — not a lookalike clone — replacing whatever role it
+ * had. A cloned role (as Agency used to be, pre-1.3.2) can carry every one
+ * of Administrator's WordPress *capabilities* and still be invisible to a
+ * third-party plugin that gates its own admin UI on the literal
+ * 'administrator' role slug rather than a capability — which is exactly
+ * what broke the Gravity Forms menu for Agency users. Real Administrator
+ * has no such gap. See is_agency_user() for how the rest of the plugin
+ * (CDG_Core_Plugin_Visibility) still exempts this account from Core's own
+ * sidebar/plugin-visibility hide rules despite it now being an ordinary
+ * Administrator account.
+ *
  * Both toggle-driven behaviors below are off by default. Native roles
  * (administrator, editor, author, contributor, subscriber) always remain
  * registered — WordPress core and other plugins assume they exist — the
  * "Hide Default WordPress Roles" setting only affects the Add User / Edit
  * User / Bulk Edit dropdowns, and only hides Editor/Author/Contributor/
- * Subscriber; Administrator always stays selectable there. Agency is never
- * selectable in those dropdowns regardless of that setting, since it's
- * only ever assigned automatically by email. Existing users keep whatever
- * role they already have; nothing here changes an existing account's role
- * automatically except the Agency email match. Turning "Enable Custom
- * Roles" back off after it's been on does not remove the roles — it just
- * stops the plugin from managing them further.
+ * Subscriber; Administrator always stays selectable there. Existing users
+ * keep whatever role they already have; nothing here changes an existing
+ * account's role automatically except the Agency email match. Turning
+ * "Enable Custom Roles" back off after it's been on does not remove
+ * Manager/Staff — it just stops the plugin from managing them further.
  *
  * @package CDG_Core
  * @since 1.1.0
@@ -45,9 +49,16 @@ declare(strict_types=1);
 
 class CDG_Core_Roles
 {
-    public const AGENCY         = 'cdg_agency';
     public const CLIENT_MANAGER = 'cdg_client_manager';
     public const CLIENT_STAFF   = 'cdg_client_staff';
+
+    /**
+     * Retired role slug from before 1.3.2, when Agency was a clone of
+     * Administrator rather than the literal Administrator role. Kept here
+     * only so migrate_legacy_agency_role() can find and clean up any sites
+     * still carrying it.
+     */
+    private const LEGACY_AGENCY_ROLE = 'cdg_agency';
 
     /**
      * Capabilities stripped from Administrator's live capability set to
@@ -116,14 +127,21 @@ class CDG_Core_Roles
     {
         $this->plugin = $plugin;
 
-        // Self-healing: (re)create any of the 3 roles if missing. Cheap —
+        // One-time cleanup for sites upgrading from pre-1.3.2: migrate any
+        // users still on the retired cdg_agency clone role over to plain
+        // Administrator, then drop the role registration. Runs before
+        // maybe_register_roles() and is a no-op once the legacy role is
+        // gone, so it's cheap to leave hooked in permanently.
+        add_action('init', [$this, 'migrate_legacy_agency_role'], 5);
+
+        // Self-healing: (re)create Manager/Staff if missing. Cheap —
         // get_role() reads the already-loaded WP_Roles object in memory.
         add_action('init', [$this, 'maybe_register_roles']);
 
         // Hide native roles from Add User / Edit User / Bulk Edit dropdowns.
         add_filter('editable_roles', [$this, 'hide_native_roles']);
 
-        // Force the Agency role onto whichever account matches the
+        // Force Administrator onto whichever account matches the
         // configured Agency Email — on login, right after account
         // creation, and again on any profile edit, so it self-heals if
         // someone reassigns the account elsewhere.
@@ -133,7 +151,34 @@ class CDG_Core_Roles
     }
 
     /**
-     * Register the 3 roles if the feature is enabled and any of them are
+     * Reassign any users still holding the retired cdg_agency role
+     * (pre-1.3.2) to plain Administrator, then remove the role
+     * registration entirely. No-ops immediately once that's done, since
+     * get_role() will return null on every subsequent request.
+     */
+    public function migrate_legacy_agency_role(): void
+    {
+        if (!get_role(self::LEGACY_AGENCY_ROLE)) {
+            return;
+        }
+
+        $legacy_users = get_users([
+            'role'   => self::LEGACY_AGENCY_ROLE,
+            'fields' => 'ID',
+        ]);
+
+        foreach ($legacy_users as $user_id) {
+            $user = get_userdata((int) $user_id);
+            if ($user) {
+                $user->set_role('administrator');
+            }
+        }
+
+        remove_role(self::LEGACY_AGENCY_ROLE);
+    }
+
+    /**
+     * Register Manager/Staff if the feature is enabled and either is
      * missing. No-op (and never removes anything) when the setting is off.
      */
     public function maybe_register_roles(): void
@@ -142,11 +187,7 @@ class CDG_Core_Roles
             return;
         }
 
-        if (
-            get_role(self::AGENCY) &&
-            get_role(self::CLIENT_MANAGER) &&
-            get_role(self::CLIENT_STAFF)
-        ) {
+        if (get_role(self::CLIENT_MANAGER) && get_role(self::CLIENT_STAFF)) {
             return;
         }
 
@@ -154,7 +195,7 @@ class CDG_Core_Roles
     }
 
     /**
-     * (Re)create all 3 roles from the current live Administrator/Editor
+     * (Re)create Manager/Staff from the current live Administrator/Editor
      * capability sets. Safe to call more than once — add_role() after
      * remove_role() fully replaces the role's capability set each time.
      */
@@ -168,10 +209,6 @@ class CDG_Core_Roles
             // create roles with no capabilities.
             return;
         }
-
-        // Agency: exact clone of Administrator.
-        remove_role(self::AGENCY);
-        add_role(self::AGENCY, __('Agency', 'cdg-core'), $admin->capabilities);
 
         // Manager: Administrator minus the blocklist above.
         $manager_caps = $admin->capabilities;
@@ -188,15 +225,11 @@ class CDG_Core_Roles
 
     /**
      * Filter the editable-roles list used by the Add User, Edit User, and
-     * Bulk Edit screens. Two independent things happen here:
-     *
-     * 1. Agency is always removed, unconditionally — it's only ever
-     *    assigned automatically by email match (see sync_agency_role()),
-     *    never picked from a dropdown.
-     * 2. Editor/Author/Contributor/Subscriber (NATIVE_ROLES) are removed
-     *    only when both "Enable Custom Roles" and "Hide Default WordPress
-     *    Roles" are turned on. Administrator is never removed by this
-     *    setting — it always stays selectable.
+     * Bulk Edit screens. Editor/Author/Contributor/Subscriber
+     * (NATIVE_ROLES) are removed only when both "Enable Custom Roles" and
+     * "Hide Default WordPress Roles" are turned on. Administrator is never
+     * removed by this setting — it always stays selectable, which is also
+     * what the Agency Email account gets assigned.
      *
      * The roles themselves stay registered either way; this only affects
      * what can be newly assigned.
@@ -206,10 +239,6 @@ class CDG_Core_Roles
      */
     public function hide_native_roles(array $roles): array
     {
-        // Agency is never manually assignable, regardless of settings —
-        // harmless no-op if the role isn't even registered.
-        unset($roles[self::AGENCY]);
-
         if (
             !$this->plugin->get_setting('enable_custom_roles') ||
             !$this->plugin->get_setting('hide_native_roles')
@@ -233,20 +262,40 @@ class CDG_Core_Roles
      */
     private function agency_email(): string
     {
-        $email = (string) $this->plugin->get_setting('agency_email');
+        return self::resolve_agency_email($this->plugin);
+    }
+
+    private static function resolve_agency_email(CDG_Core $plugin): string
+    {
+        $email = (string) $plugin->get_setting('agency_email');
         return is_email($email) ? $email : self::DEFAULT_AGENCY_EMAIL;
     }
 
     /**
-     * Force the Agency role onto the given user if their email matches the
-     * configured Agency Email, replacing whatever role(s) they currently
-     * have — mirrors how Manager/Staff are single roles. No-op unless
-     * "Enable Custom Roles" is on and the Agency role is actually
-     * registered (both true once maybe_register_roles() has run on init).
+     * True if the given user's email matches the configured Agency Email
+     * and "Enable Custom Roles" is on. Used by CDG_Core_Plugin_Visibility
+     * to exempt the CDG staff account from Core's own sidebar/plugin
+     * visibility hide rules — necessary now that Agency is a plain
+     * Administrator account rather than a distinct role that could simply
+     * be left out of those rules' target-role list.
+     */
+    public static function is_agency_user(WP_User $user, CDG_Core $plugin): bool
+    {
+        if (!$plugin->get_setting('enable_custom_roles')) {
+            return false;
+        }
+
+        return strcasecmp(trim($user->user_email), trim(self::resolve_agency_email($plugin))) === 0;
+    }
+
+    /**
+     * Force plain Administrator onto the given user if their email matches
+     * the configured Agency Email, replacing whatever role(s) they
+     * currently have. No-op unless "Enable Custom Roles" is on.
      */
     private function sync_agency_role(int $user_id): void
     {
-        if (!$this->plugin->get_setting('enable_custom_roles') || !get_role(self::AGENCY)) {
+        if (!$this->plugin->get_setting('enable_custom_roles')) {
             return;
         }
 
@@ -259,8 +308,8 @@ class CDG_Core_Roles
             return;
         }
 
-        if ($user->roles !== [self::AGENCY]) {
-            $user->set_role(self::AGENCY);
+        if ($user->roles !== ['administrator']) {
+            $user->set_role('administrator');
         }
     }
 
@@ -288,8 +337,9 @@ class CDG_Core_Roles
      * (Sidebar Menu Items and Custom Menu Links), in display order.
      * Administrator is included alongside Manager/Staff so a menu item or
      * link can be hidden from the site's native Administrator role too,
-     * not just the two roles this plugin creates. Agency is never
-     * included — it always sees the full, unmodified sidebar.
+     * not just the two roles this plugin creates. The Agency Email account
+     * always bypasses whatever is configured here regardless — see
+     * is_agency_user() and CDG_Core_Plugin_Visibility.
      *
      * @return array<string, string> role slug => label
      */
@@ -304,12 +354,14 @@ class CDG_Core_Roles
 
     /**
      * Roles that can be targeted by the Sidebar tab's Plugin Visibility
-     * controls: every currently registered role except Agency. Unlike
-     * target_roles() (Manager/Staff only — the two roles this plugin
-     * creates for content-only client users), this includes the native
-     * WordPress roles (Administrator, Editor, Author, Contributor,
-     * Subscriber), so a plugin can be hidden from a client even on sites
-     * that never turn on "Enable Custom Roles" and just use default roles.
+     * controls: every currently registered role. Unlike target_roles()
+     * (Manager/Staff only — the two roles this plugin creates for
+     * content-only client users), this includes the native WordPress roles
+     * (Administrator, Editor, Author, Contributor, Subscriber), so a
+     * plugin can be hidden from a client even on sites that never turn on
+     * "Enable Custom Roles" and just use default roles. As with
+     * target_roles(), the Agency Email account always bypasses whatever is
+     * configured against Administrator here — see is_agency_user().
      *
      * Reflects live registered roles — Manager/Staff only appear once
      * "Enable Custom Roles" has actually registered them; they drop back
@@ -320,9 +372,6 @@ class CDG_Core_Roles
      */
     public static function hideable_roles(): array
     {
-        $roles = wp_roles()->get_names();
-        unset($roles[self::AGENCY]);
-
-        return array_map('translate_user_role', $roles);
+        return array_map('translate_user_role', wp_roles()->get_names());
     }
 }
