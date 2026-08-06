@@ -61,6 +61,11 @@ class CDG_Core_Admin
 
   public function handle_form_submission(): void
   {
+    if (isset($_POST["cdg_core_rebuild_roles"])) {
+      $this->handle_rebuild_roles();
+      return;
+    }
+
     if (!isset($_POST["cdg_core_save_settings"])) {
       return;
     }
@@ -88,6 +93,39 @@ class CDG_Core_Admin
 
     $redirect_url = add_query_arg(
       ["tab" => $tab, "settings-updated" => "true"],
+      admin_url("options-general.php?page=cdg-core-settings")
+    );
+
+    wp_safe_redirect($redirect_url);
+    exit();
+  }
+
+  /**
+   * Force Agency/Manager/Staff to be rebuilt from the current live
+   * Administrator/Editor capability sets. Unlike the self-healing check on
+   * `init` (which only fires if a role is missing entirely), this always
+   * re-clones — so it picks up capabilities other plugins (e.g. Gravity
+   * Forms) have added to Administrator since the roles were first created.
+   *
+   * @return void
+   */
+  private function handle_rebuild_roles(): void
+  {
+    if (
+      !isset($_POST["cdg_core_nonce"]) ||
+      !wp_verify_nonce($_POST["cdg_core_nonce"], "cdg_core_settings")
+    ) {
+      wp_die(__("Security check failed.", "cdg-core"));
+    }
+
+    if (!current_user_can("manage_options")) {
+      wp_die(__("Permission denied.", "cdg-core"));
+    }
+
+    CDG_Core_Roles::register_roles();
+
+    $redirect_url = add_query_arg(
+      ["tab" => "roles", "roles-rebuilt" => "true"],
       admin_url("options-general.php?page=cdg-core-settings")
     );
 
@@ -429,6 +467,8 @@ class CDG_Core_Admin
     $active_tab = sanitize_text_field($_GET["tab"] ?? "features");
     $saved =
       isset($_GET["settings-updated"]) && $_GET["settings-updated"] === "true";
+    $roles_rebuilt =
+      isset($_GET["roles-rebuilt"]) && $_GET["roles-rebuilt"] === "true";
 
     $tabs = [
       "features" => "Features",
@@ -456,6 +496,12 @@ class CDG_Core_Admin
           <div class="cdg-success-notice">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
             <?php esc_html_e("Settings saved.", "cdg-core"); ?>
+          </div>
+        <?php endif; ?>
+        <?php if ($roles_rebuilt): ?>
+          <div class="cdg-success-notice">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+            <?php esc_html_e("Roles rebuilt from the current Administrator/Editor capabilities.", "cdg-core"); ?>
           </div>
         <?php endif; ?>
       </div>
@@ -1416,6 +1462,15 @@ class CDG_Core_Admin
           "Hide Default WordPress Roles",
           "Removes Editor, Author, Contributor, and Subscriber from the Add User / Edit User / Bulk Edit role dropdowns, so only Administrator, Manager, and Staff can be newly assigned. Administrator always stays selectable, and Agency is never selectable regardless of this toggle &#8212; see Agency Email above. Existing users keep whatever role they already have &#8212; nothing is reassigned automatically.",
           $this->sw("hide_native_roles", $s["hide_native_roles"]),
+          true
+        );
+
+        $this->row(
+          "Rebuild Roles",
+          "Re-clones Agency, Manager, and Staff from the site's <em>current</em> Administrator/Editor capabilities. Roles are normally only (re)created when missing, so a role created before another plugin (e.g. Gravity Forms) added its own capabilities to Administrator won't pick those up on its own &#8212; use this to force a refresh if Agency or Manager is missing menu items or access another plugin grants to Administrator.",
+          '<button type="submit" name="cdg_core_rebuild_roles" value="1" class="cdg-btn cdg-btn-secondary">' .
+            esc_html__("Rebuild Roles", "cdg-core") .
+            "</button>",
           true
         );
 
