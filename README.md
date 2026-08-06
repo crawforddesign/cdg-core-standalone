@@ -4,7 +4,7 @@ WordPress optimizations, security hardening, and agency features for Crawford De
 
 > Both plugins (`cdg-core` and `cdg-core-standalone`) share the same PHP class and constant names (`CDG_Core`, `CDG_CORE_VERSION`, etc.), so they must not be active on the same WordPress install at the same time. Each site should run one or the other.
 
-## Version 1.3.0
+## Version 1.3.1
 
 ### Requirements
 
@@ -200,6 +200,10 @@ Installed sites will see the update within ~12 hours (WordPress's normal update-
 Auto-updates are not enabled by default. If you want a given site to apply releases unattended, an admin can turn on "Enable auto-updates" for CDG Core Standalone from that site's Plugins page — this uses WordPress's own fatal-error-protected update path.
 
 ### Changelog
+
+#### 1.3.1
+
+- Added a "Rebuild Roles" button to the Roles tab (Custom Roles card). Agency/Manager/Staff are normally only (re)created when missing, so a role created before another plugin (e.g. Gravity Forms) added its own capabilities to Administrator won't pick those up on its own — this forces a re-clone from the site's current live Administrator/Editor capabilities.
 
 #### 1.3.0
 
