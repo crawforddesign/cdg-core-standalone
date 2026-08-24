@@ -203,6 +203,146 @@
       });
     });
 
+    // ── Sidebar tab: menu items search, "customized only" filter, expand/collapse all ──
+    var siList = document.querySelector(".cdg-si-list");
+    if (siList) {
+      var siSearch        = document.getElementById("cdg-si-search");
+      var siCustomizedBtn = document.getElementById("cdg-si-customized-toggle");
+      var siExpandAllBtn  = document.getElementById("cdg-si-expand-all");
+      var siEmpty         = document.getElementById("cdg-si-empty");
+      var siParentRows    = Array.prototype.slice.call(siList.querySelectorAll(".cdg-si-parent"));
+      var siCustomizedOnly = false;
+
+      function applySiFilter() {
+        var q = (siSearch ? siSearch.value : "").trim().toLowerCase();
+        var anyVisible = false;
+
+        siParentRows.forEach(function (row) {
+          var title         = row.dataset.title || "";
+          var isCustomized  = row.dataset.customized === "true";
+          var matchesText   = !q || title.indexOf(q) !== -1;
+          var matchesFilter = !siCustomizedOnly || isCustomized;
+          var visible       = matchesText && matchesFilter;
+
+          row.style.display = visible ? "" : "none";
+          if (visible) anyVisible = true;
+
+          var slug = row.dataset.slug;
+          siList.querySelectorAll('.cdg-si-child[data-parent="' + slug + '"]').forEach(function (child) {
+            child.style.display = visible ? "" : "none";
+          });
+        });
+
+        if (siEmpty) siEmpty.style.display = anyVisible ? "none" : "";
+      }
+
+      if (siSearch) siSearch.addEventListener("input", applySiFilter);
+
+      if (siCustomizedBtn) {
+        siCustomizedBtn.addEventListener("click", function () {
+          siCustomizedOnly = !siCustomizedOnly;
+          siCustomizedBtn.setAttribute("aria-pressed", siCustomizedOnly ? "true" : "false");
+          applySiFilter();
+        });
+      }
+
+      if (siExpandAllBtn) {
+        siExpandAllBtn.addEventListener("click", function () {
+          var anyCollapsed = siParentRows.some(function (row) {
+            var toggle = row.querySelector(".cdg-si-toggle");
+            return toggle && toggle.getAttribute("aria-expanded") !== "true";
+          });
+
+          siParentRows.forEach(function (row) {
+            var toggle = row.querySelector(".cdg-si-toggle");
+            if (!toggle) return;
+            var slug = row.dataset.slug;
+
+            toggle.setAttribute("aria-expanded", anyCollapsed ? "true" : "false");
+            row.classList.toggle("cdg-si-parent-open", anyCollapsed);
+            siList.querySelectorAll('.cdg-si-child[data-parent="' + slug + '"]').forEach(function (child) {
+              child.classList.toggle("cdg-si-open", anyCollapsed);
+            });
+          });
+
+          siExpandAllBtn.innerHTML = anyCollapsed
+            ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="18 15 12 9 6 15"/></svg>Collapse all'
+            : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>Expand all';
+        });
+      }
+    }
+
+    // ── Sidebar tab: Plugin Visibility search + select-all columns ──
+    var pvList = document.querySelector(".cdg-pv-list");
+    if (pvList) {
+      var pvSearch = document.getElementById("cdg-pv-search");
+      var pvEmpty  = document.getElementById("cdg-pv-empty");
+      var pvRows   = Array.prototype.slice.call(pvList.querySelectorAll(".cdg-pv-row:not(.cdg-pv-row-head)"));
+
+      function pvVisibleCheckboxesForRole(role) {
+        return pvRows
+          .filter(function (row) { return row.style.display !== "none"; })
+          .map(function (row) { return row.querySelector('.cdg-pv-cb[data-role="' + role + '"]'); })
+          .filter(Boolean);
+      }
+
+      function syncPvColumnHeader(role) {
+        var header = pvList.querySelector('.cdg-pv-head-cb[data-role="' + role + '"]');
+        if (!header) return;
+
+        var boxes = pvVisibleCheckboxesForRole(role);
+        if (!boxes.length) {
+          header.checked = false;
+          header.indeterminate = false;
+          return;
+        }
+
+        var checkedCount = boxes.filter(function (b) { return b.checked; }).length;
+        header.checked = checkedCount === boxes.length;
+        header.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+      }
+
+      function syncAllPvColumnHeaders() {
+        pvList.querySelectorAll(".cdg-pv-head-cb").forEach(function (header) {
+          syncPvColumnHeader(header.dataset.role);
+        });
+      }
+
+      function applyPvFilter() {
+        var q = (pvSearch ? pvSearch.value : "").trim().toLowerCase();
+        var anyVisible = false;
+
+        pvRows.forEach(function (row) {
+          var title   = row.dataset.title || "";
+          var visible = !q || title.indexOf(q) !== -1;
+          row.style.display = visible ? "" : "none";
+          if (visible) anyVisible = true;
+        });
+
+        if (pvEmpty) pvEmpty.style.display = anyVisible ? "none" : "";
+        syncAllPvColumnHeaders();
+      }
+
+      if (pvSearch) pvSearch.addEventListener("input", applyPvFilter);
+
+      pvList.querySelectorAll(".cdg-pv-head-cb").forEach(function (header) {
+        header.addEventListener("click", function () {
+          var role    = header.dataset.role;
+          var checked = header.checked;
+          pvVisibleCheckboxesForRole(role).forEach(function (cb) { cb.checked = checked; });
+          header.indeterminate = false;
+        });
+      });
+
+      pvList.querySelectorAll(".cdg-pv-cb").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          syncPvColumnHeader(cb.dataset.role);
+        });
+      });
+
+      syncAllPvColumnHeaders();
+    }
+
     // ── Sidebar tab: dashicon picker ──
     var CDG_ICONS = [
       "admin-appearance","admin-comments","admin-generic","admin-home",
@@ -364,6 +504,14 @@
         // Bind icon picker.
         var pickerBtn = row.querySelector(".cdg-icon-picker-btn");
         if (pickerBtn) bindIconPickerBtn(pickerBtn);
+
+        // Bind collapse/expand toggle.
+        var cliToggle = row.querySelector(".cdg-cli-toggle");
+        if (cliToggle) {
+          cliToggle.addEventListener("click", function () {
+            row.classList.toggle("cdg-cli-collapsed");
+          });
+        }
 
         // Bind remove button.
         var removeBtn = row.querySelector(".cdg-custom-link-remove");

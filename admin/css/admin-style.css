@@ -1225,6 +1225,507 @@ textarea.cdg-input {
   justify-content: flex-end;
 }
 
+/* ── Card header: title row + optional icon/badge (Roles tab redesign) ── */
+.cdg-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cdg-card-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cdg-card-title-wrap svg {
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0;
+}
+
+.cdg-card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Toolbar (search + filters, above a data grid) ── */
+.cdg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--cdg-border);
+  background: var(--cdg-muted);
+  flex-wrap: wrap;
+}
+
+.cdg-search-input {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--cdg-surface);
+  border: 1px solid var(--cdg-border);
+  border-radius: var(--cdg-radius);
+  padding: 6px 10px;
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.cdg-search-input svg {
+  width: 13px !important;
+  height: 13px !important;
+  color: var(--cdg-muted-fg);
+  flex-shrink: 0;
+}
+
+.cdg-search-input input {
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 12.5px;
+  color: var(--cdg-fg);
+  width: 100%;
+}
+
+.cdg-chip-btn {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cdg-fg-2);
+  background: var(--cdg-surface);
+  border: 1px solid var(--cdg-border);
+  border-radius: 100px;
+  padding: 5.5px 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.cdg-chip-btn:hover {
+  border-color: var(--cdg-muted-fg);
+}
+
+.cdg-chip-btn[aria-pressed="true"] {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.cdg-chip-dot {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cdg-chip-dot svg {
+  width: 10px !important;
+  height: 10px !important;
+}
+
+.cdg-count-chip {
+  font-size: 11px;
+  color: var(--cdg-muted-fg);
+  background: var(--cdg-surface);
+  border: 1px solid var(--cdg-border);
+  border-radius: 100px;
+  padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cdg-toolbar-spacer {
+  flex: 1;
+}
+
+.cdg-text-btn {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cdg-fg-2);
+  background: none;
+  border: none;
+  padding: 5px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.cdg-text-btn:hover {
+  color: var(--cdg-fg);
+}
+
+.cdg-text-btn svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* ── Legend / inline note strips (sit above a data grid) ── */
+.cdg-legend {
+  padding: 8px 20px;
+  font-size: 11.5px;
+  color: var(--cdg-muted-fg);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cdg-legend-dot svg {
+  width: 9px !important;
+  height: 9px !important;
+}
+
+.cdg-inline-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 20px;
+  font-size: 11.8px;
+  line-height: 1.5;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+.cdg-inline-note svg {
+  width: 13px !important;
+  height: 13px !important;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cdg-inline-note span {
+  color: var(--cdg-fg-2);
+}
+
+.cdg-inline-success {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #15803d;
+  padding: 0 20px 16px;
+  margin-top: -6px;
+}
+
+.cdg-inline-success svg {
+  width: 13px !important;
+  height: 13px !important;
+  flex-shrink: 0;
+}
+
+/* ── Scroll containers: horizontal safety net for wide grids, plus an
+   optional vertical clamp with a pinned header for long lists. Neither
+   .cdg-si-list nor .cdg-pv-list had a responsive breakpoint before this —
+   below ~900px the fixed-width grid columns just squeezed. ── */
+.cdg-scroll-region {
+  overflow-x: auto;
+}
+
+.cdg-scroll-region-tall {
+  max-height: 430px;
+  overflow-y: auto;
+}
+
+.cdg-si-list {
+  min-width: 760px;
+}
+
+.cdg-scroll-region-tall .cdg-si-row-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.cdg-pv-row {
+  min-width: max-content;
+}
+
+/* ── Sidebar Menu Items: "customized" indicator ── */
+.cdg-si-customized-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #1d4ed8;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ── Plugin Visibility: select-all column headers ── */
+.cdg-pv-head-role {
+  flex-direction: column;
+}
+
+.cdg-pv-head-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  text-transform: none;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+  width: 100%;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--cdg-muted-fg);
+}
+
+.cdg-pv-head-check input[type="checkbox"] {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.cdg-check-item input:indeterminate + .cdg-check-box,
+.cdg-pv-head-check input:indeterminate + .cdg-check-box {
+  background: var(--cdg-primary);
+  border-color: var(--cdg-primary);
+}
+
+.cdg-check-item input:indeterminate + .cdg-check-box::after,
+.cdg-pv-head-check input:indeterminate + .cdg-check-box::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 3.5px;
+  width: 7px;
+  height: 1.6px;
+  background: #fff;
+  border: none;
+  transform: none;
+}
+
+/* Editor/Author/Contributor/Subscriber columns, hidden while "Hide Default
+   WordPress Roles" is on (Roles tab) — the inputs stay in the DOM so their
+   saved state still submits, this only hides them visually. */
+.cdg-pv-hide-native [data-role-col="editor"],
+.cdg-pv-hide-native [data-role-col="author"],
+.cdg-pv-hide-native [data-role-col="contributor"],
+.cdg-pv-hide-native [data-role-col="subscriber"] {
+  display: none;
+}
+
+/* ── Status pills (Roles tab card headers) ── */
+.cdg-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 100px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.cdg-status-pill i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+}
+
+.cdg-status-on {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.cdg-status-off {
+  background: var(--cdg-muted);
+  color: var(--cdg-muted-fg);
+  border: 1px solid var(--cdg-border);
+}
+
+.cdg-status-always {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* ── Warn (maintenance / danger-zone) card + button ── */
+.cdg-card-warn {
+  border-color: #fde68a;
+}
+
+.cdg-card-warn .cdg-card-title-wrap svg {
+  color: #b45309;
+}
+
+.cdg-btn-warn {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a !important;
+}
+
+.cdg-btn-warn:hover {
+  background: #fef3c7;
+  border-color: #fcd34d !important;
+}
+
+/* ── Role Capabilities matrix ── */
+.cdg-matrix-wrap {
+  padding: 4px 20px 16px;
+  overflow-x: auto;
+}
+
+.cdg-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.cdg-matrix th,
+.cdg-matrix td {
+  padding: 9px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--cdg-border);
+}
+
+.cdg-matrix thead th {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cdg-muted-fg);
+  font-weight: 600;
+}
+
+.cdg-matrix-role {
+  text-align: center !important;
+  width: 110px;
+}
+
+.cdg-matrix tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cdg-matrix-cap {
+  font-weight: 500;
+  color: var(--cdg-fg);
+}
+
+.cdg-matrix-cap-sub {
+  display: block;
+  font-weight: 400;
+  color: var(--cdg-muted-fg);
+  font-size: 11.3px;
+  margin-top: 1px;
+}
+
+.cdg-cap-full,
+.cdg-cap-none {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.cdg-cap-full {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.cdg-cap-none {
+  color: var(--cdg-border);
+}
+
+.cdg-cap-full svg,
+.cdg-cap-none svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.cdg-matrix-foot {
+  padding: 0 20px 16px;
+  margin: 0;
+  font-size: 11.8px;
+  color: var(--cdg-muted-fg);
+  line-height: 1.55;
+}
+
+/* ── Custom Menu Links: collapse to a summary row ── */
+.cdg-custom-link-header-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cdg-cli-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--cdg-muted-fg);
+}
+
+.cdg-cli-toggle svg {
+  transition: transform 0.15s ease;
+}
+
+.cdg-custom-link-item:not(.cdg-cli-collapsed) .cdg-cli-toggle svg {
+  transform: rotate(90deg);
+}
+
+.cdg-custom-link-meta {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px 10px 60px;
+  font-size: 11.3px;
+  color: var(--cdg-muted-fg);
+  flex-wrap: wrap;
+}
+
+.cdg-cli-meta-sep {
+  opacity: 0.5;
+}
+
+.cdg-custom-link-item.cdg-cli-collapsed .cdg-custom-link-meta {
+  display: flex;
+}
+
+.cdg-custom-link-item.cdg-cli-collapsed .cdg-custom-link-body {
+  display: none;
+}
+
 /* ── Responsive ── */
 @media (max-width: 782px) {
   .cdg-body-layout {
@@ -1260,5 +1761,14 @@ textarea.cdg-input {
   .cdg-radio-group {
     flex-direction: column;
     width: 100%;
+  }
+
+  .cdg-search-input {
+    max-width: none;
+    width: 100%;
+  }
+
+  .cdg-card-title-row {
+    flex-wrap: wrap;
   }
 }

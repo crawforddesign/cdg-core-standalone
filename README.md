@@ -4,7 +4,7 @@ WordPress optimizations, security hardening, and agency features for Crawford De
 
 > Both plugins (`cdg-core` and `cdg-core-standalone`) share the same PHP class and constant names (`CDG_Core`, `CDG_CORE_VERSION`, etc.), so they must not be active on the same WordPress install at the same time. Each site should run one or the other.
 
-## Version 1.3.2
+## Version 1.3.3
 
 ### Requirements
 
@@ -200,6 +200,11 @@ Installed sites will see the update within ~12 hours (WordPress's normal update-
 Auto-updates are not enabled by default. If you want a given site to apply releases unattended, an admin can turn on "Enable auto-updates" for CDG Core Standalone from that site's Plugins page — this uses WordPress's own fatal-error-protected update path.
 
 ### Changelog
+
+#### 1.3.3
+
+- Sidebar tab: Sidebar Menu Items gained search, a "Customized only" filter, and expand/collapse-all — the list runs 30–50+ rows once submenus are counted and had no way to jump to one. Fixed the grid's missing responsive breakpoint (no fallback below 782px — it just squeezed) with a horizontal-scroll safety net, now also applied to Plugin Visibility. Plugin Visibility gained per-role select-all column headers and now covers the full role set (Administrator, Editor, Author, Contributor, Subscriber, Manager, Staff); its Editor/Author/Contributor/Subscriber columns hide automatically when Roles &rsaquo; "Hide Default WordPress Roles" is on, since those roles can't be newly assigned anyway — saved state for them isn't lost, the checkboxes stay in the form, just visually hidden. Custom Menu Links now collapse to a one-line summary instead of staying permanently expanded.
+- Roles tab: split the single "Custom Roles" card into five — Custom Roles (with an Active/Off status pill), a new Role Capabilities comparison table (Administrator vs. Manager vs. Staff, derived from `CDG_Core_Roles::MANAGER_BLOCKLIST`), Agency Access, Role Visibility, and a visually distinct amber "Maintenance" card for Rebuild Roles.
 
 #### 1.3.2
 

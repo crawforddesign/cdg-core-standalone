@@ -596,11 +596,33 @@ class CDG_Core_Admin
    * HELPERS
    * ═══════════════════════════════════════════════════════════ */
 
-  private function card(string $title, string $desc, callable $body): void
-  {
-    echo '<div class="cdg-card">';
+  /**
+   * @param string $extra_class  Additional classes on the card wrapper (e.g. 'cdg-card-warn')
+   * @param string $icon         Trusted raw SVG shown before the title
+   * @param string $badge        Trusted raw HTML (e.g. a status pill) shown at the right of the title row
+   */
+  private function card(
+    string $title,
+    string $desc,
+    callable $body,
+    string $extra_class = "",
+    string $icon = "",
+    string $badge = ""
+  ): void {
+    $classes = "cdg-card" . ($extra_class !== "" ? " " . $extra_class : "");
+    echo '<div class="' . esc_attr($classes) . '">';
     echo '<div class="cdg-card-header">';
+    echo '<div class="cdg-card-title-row">';
+    echo '<div class="cdg-card-title-wrap">';
+    if ($icon !== "") {
+      echo $icon; // phpcs:ignore WordPress.Security.EscapeOutput -- static trusted SVG
+    }
     echo '<div class="cdg-card-title">' . esc_html($title) . "</div>";
+    echo "</div>";
+    if ($badge !== "") {
+      echo $badge; // phpcs:ignore WordPress.Security.EscapeOutput -- built from trusted static strings
+    }
+    echo "</div>";
     if ($desc !== "") {
       echo '<p class="cdg-card-desc">' . wp_kses_post($desc) . "</p>";
     }
@@ -1436,47 +1458,180 @@ class CDG_Core_Admin
    * TAB: ROLES
    * ═══════════════════════════════════════════════════════════ */
 
+  /**
+   * Static capability comparison for the Roles tab's "Role Capabilities"
+   * card. Mirrors CDG_Core_Roles::MANAGER_BLOCKLIST and the fact that
+   * Staff is an exact clone of Editor — kept here as an editorial summary
+   * rather than computed live, since it groups individual capability
+   * strings into reader-facing categories. Update alongside
+   * MANAGER_BLOCKLIST if that list ever changes.
+   */
+  private function capability_matrix(): void
+  {
+    $rows = [
+      [
+        __("Content", "cdg-core"),
+        __("Posts, pages, media, comments", "cdg-core"),
+        true,
+        true,
+        true,
+      ],
+      [
+        __("Appearance", "cdg-core"),
+        __("Themes, menus, widgets, customizer", "cdg-core"),
+        true,
+        true,
+        false,
+      ],
+      [
+        __("Site Settings", "cdg-core"),
+        __("Settings pages, General, Permalinks…", "cdg-core"),
+        true,
+        true,
+        false,
+      ],
+      [
+        __("Plugins & Theme Files", "cdg-core"),
+        __("Install, update, delete, edit", "cdg-core"),
+        true,
+        false,
+        false,
+      ],
+      [
+        __("User Management", "cdg-core"),
+        __("Create, edit, delete, promote", "cdg-core"),
+        true,
+        false,
+        false,
+      ],
+      [
+        __("Core Updates & File Editor", "cdg-core"),
+        __("update_core, edit_files", "cdg-core"),
+        true,
+        false,
+        false,
+      ],
+    ];
+
+    $check = '<span class="cdg-cap-full"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>';
+    $none  = '<span class="cdg-cap-none"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg></span>';
+
+    echo '<div class="cdg-matrix-wrap"><table class="cdg-matrix"><thead><tr>';
+    echo "<th>" . esc_html__("Capability area", "cdg-core") . "</th>";
+    echo '<th class="cdg-matrix-role">' . esc_html__("Administrator", "cdg-core") . "</th>";
+    echo '<th class="cdg-matrix-role">' . esc_html__("Manager", "cdg-core") . "</th>";
+    echo '<th class="cdg-matrix-role">' . esc_html__("Staff", "cdg-core") . "</th>";
+    echo "</tr></thead><tbody>";
+
+    foreach ($rows as $row) {
+      [$label, $sub, $admin, $manager, $staff] = $row;
+      echo "<tr>";
+      echo '<td class="cdg-matrix-cap">' . esc_html($label) . '<span class="cdg-matrix-cap-sub">' . esc_html($sub) . "</span></td>";
+      echo '<td class="cdg-matrix-role">' . ($admin ? $check : $none) . "</td>"; // phpcs:ignore WordPress.Security.EscapeOutput
+      echo '<td class="cdg-matrix-role">' . ($manager ? $check : $none) . "</td>"; // phpcs:ignore WordPress.Security.EscapeOutput
+      echo '<td class="cdg-matrix-role">' . ($staff ? $check : $none) . "</td>"; // phpcs:ignore WordPress.Security.EscapeOutput
+      echo "</tr>";
+    }
+
+    echo "</tbody></table></div>";
+    echo '<p class="cdg-matrix-foot">' .
+      wp_kses_post(
+        __(
+          "Capabilities added by other plugins (Divi, Wordfence, Yoast&#8230;) on top of Administrator carry through to Manager automatically &#8212; only the six areas above are ever removed. Use <code>Rebuild Roles</code> below if a third-party plugin adds new capabilities after Manager was first created.",
+          "cdg-core"
+        )
+      ) .
+      "</p>";
+  }
+
   private function tab_roles(array $s): void
   {
+    $enabled = (bool) $s["enable_custom_roles"];
+    $roles_rebuilt = isset($_GET["roles-rebuilt"]) && $_GET["roles-rebuilt"] === "true";
+
+    $status_badge = '<span class="cdg-status-pill ' .
+      ($enabled ? "cdg-status-on" : "cdg-status-off") .
+      '"><i></i>' .
+      ($enabled ? esc_html__("Active", "cdg-core") : esc_html__("Off", "cdg-core")) .
+      "</span>";
+
     $this->card(
       "Custom Roles",
       "Creates dedicated Manager/Staff roles for client users, and auto-assigns native Administrator to CDG staff by email, separate from the default WordPress role-assignment flow. Off by default.",
-      function () use ($s) {
+      function () use ($enabled) {
         $this->row(
           "Enable Custom Roles",
           "Registers two roles: <strong>Manager</strong> (Administrator capabilities minus plugin/theme installs, user management, and core updates) and <strong>Staff</strong> (clone of Editor &#8212; content only). Also required for the Agency Email auto-assignment below to have any effect.",
-          $this->sw("enable_custom_roles", $s["enable_custom_roles"])
+          $this->sw("enable_custom_roles", $enabled)
         );
+      },
+      "",
+      "",
+      $status_badge
+    );
 
-        $sub_class = !$s["enable_custom_roles"] ? "cdg-disabled" : "";
-        echo '<div id="cdg-roles-sub-settings" class="' . esc_attr($sub_class) . '">';
+    $sub_class = !$enabled ? "cdg-disabled" : "";
+    echo '<div id="cdg-roles-sub-settings" class="cdg-card-stack ' . esc_attr($sub_class) . '">';
 
-        $this->row(
-          "Agency Email",
-          "The account with this email is automatically switched to WordPress's native <strong>Administrator</strong> role &#8212; not a lookalike clone &#8212; replacing whatever role it currently has, on login, on account creation, and whenever its profile is edited. It also always bypasses this plugin's own Sidebar tab hide rules (Sidebar Menu Items, Custom Menu Links, and Plugin Visibility), even ones configured against Administrator.",
-          '<input type="email" name="agency_email" value="' . esc_attr($s["agency_email"]) . '" placeholder="' . esc_attr(CDG_Core_Roles::DEFAULT_AGENCY_EMAIL) . '" class="cdg-input">',
-          true
-        );
-
-        $this->row(
-          "Hide Default WordPress Roles",
-          "Removes Editor, Author, Contributor, and Subscriber from the Add User / Edit User / Bulk Edit role dropdowns, so only Administrator, Manager, and Staff can be newly assigned. Administrator always stays selectable there. Existing users keep whatever role they already have &#8212; nothing is reassigned automatically.",
-          $this->sw("hide_native_roles", $s["hide_native_roles"]),
-          true
-        );
-
-        $this->row(
-          "Rebuild Roles",
-          "Re-clones Manager and Staff from the site's <em>current</em> Administrator/Editor capabilities. Roles are normally only (re)created when missing, so a role created before another plugin added its own capabilities to Administrator won't pick those up on its own &#8212; use this to force a refresh if Manager or Staff is missing access another plugin grants to Administrator/Editor.",
-          '<button type="submit" name="cdg_core_rebuild_roles" value="1" class="cdg-btn cdg-btn-secondary">' .
-            esc_html__("Rebuild Roles", "cdg-core") .
-            "</button>",
-          true
-        );
-
-        echo "</div>";
+    $this->card(
+      "Role Capabilities",
+      "What each role can actually do, at a glance &#8212; Manager is Administrator minus four areas; Staff is an exact clone of Editor.",
+      function () {
+        $this->capability_matrix();
       }
     );
+
+    $this->card(
+      "Agency Access",
+      "The account with this email is automatically switched to WordPress's native <strong>Administrator</strong> role &#8212; not a lookalike clone &#8212; replacing whatever role it currently has, on login, on account creation, and whenever its profile is edited. It also always bypasses this plugin's own Sidebar tab hide rules (Sidebar Menu Items, Custom Menu Links, and Plugin Visibility), even ones configured against Administrator.",
+      function () use ($s) {
+        $this->row(
+          "Agency Email",
+          "Replaces whatever role this account currently has, and self-heals if it's ever reassigned.",
+          '<input type="email" name="agency_email" value="' . esc_attr($s["agency_email"]) . '" placeholder="' . esc_attr(CDG_Core_Roles::DEFAULT_AGENCY_EMAIL) . '" class="cdg-input">'
+        );
+      },
+      "",
+      "",
+      '<span class="cdg-status-pill cdg-status-always"><i></i>' . esc_html__("Always Administrator", "cdg-core") . "</span>"
+    );
+
+    $this->card(
+      "Role Visibility",
+      "Controls what shows up in the role-assignment dropdown &#8212; not who can do what.",
+      function () use ($s) {
+        $this->row(
+          "Hide Default WordPress Roles",
+          "Removes Editor, Author, Contributor, and Subscriber from the Add User / Edit User / Bulk Edit role dropdowns, so only Administrator, Manager, and Staff can be newly assigned. Administrator always stays selectable there. Existing users keep whatever role they already have &#8212; nothing is reassigned automatically. Also hides those four roles' columns on the Sidebar tab's Plugin Visibility list, since they can't be newly assigned anyway.",
+          $this->sw("hide_native_roles", $s["hide_native_roles"])
+        );
+      }
+    );
+
+    $this->card(
+      "Maintenance",
+      "Re-clones Manager and Staff from the site's <em>current</em> Administrator/Editor capabilities. Roles are normally only (re)created when missing, so a role created before another plugin added its own capabilities to Administrator won't pick those up on its own &#8212; use this to force a refresh if Manager or Staff is missing access another plugin grants to Administrator/Editor.",
+      function () use ($roles_rebuilt) {
+        $this->row(
+          "Rebuild Roles",
+          "",
+          '<button type="submit" name="cdg_core_rebuild_roles" value="1" class="cdg-btn cdg-btn-warn">' .
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>' .
+            esc_html__("Rebuild Roles", "cdg-core") .
+            "</button>"
+        );
+        if ($roles_rebuilt) {
+          echo '<div class="cdg-inline-success">' .
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>' .
+            esc_html__("Rebuilt just now, from the current Administrator/Editor capabilities.", "cdg-core") .
+            "</div>";
+        }
+      },
+      "cdg-card-warn",
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    );
+
+    echo "</div>";
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -1498,22 +1653,58 @@ class CDG_Core_Admin
     $url        = esc_attr($link["link"]   ?? "");
     $target     = ($link["target"] ?? "_self") === "_blank" ? "_blank" : "_self";
     $hidden_for = array_map("sanitize_key", (array) ($link["hidden_for"] ?? []));
+
+    // Existing (saved) links start collapsed to a summary line; a freshly
+    // added, still-empty link starts open since it needs input right away.
+    $has_data   = ($link["title"] ?? "") !== "" || ($link["link"] ?? "") !== "";
+    $item_class = "cdg-custom-link-item" . ($has_data ? " cdg-cli-collapsed" : "");
+    $toggle_label = $has_data ? __("Expand", "cdg-core") : __("Collapse", "cdg-core");
+
+    $url_raw     = (string) ($link["link"] ?? "");
+    $url_display = $url_raw !== "" ? (wp_parse_url($url_raw, PHP_URL_HOST) ?: $url_raw) : __("No URL set", "cdg-core");
+    $target_label = $target === "_blank" ? __("New tab", "cdg-core") : __("Same window", "cdg-core");
+
+    $hidden_labels = [];
+    foreach (CDG_Core_Roles::target_roles() as $role_slug => $role_label) {
+      if (in_array($role_slug, $hidden_for, true)) {
+        $hidden_labels[] = $role_label;
+      }
+    }
+    $hidden_summary = empty($hidden_labels)
+      ? __("Visible to everyone", "cdg-core")
+      : sprintf(
+        /* translators: %s: comma-separated list of role labels */
+        __("Hidden from %s", "cdg-core"),
+        implode(", ", $hidden_labels)
+      );
     ?>
-    <div class="cdg-custom-link-item">
+    <div class="<?php echo esc_attr($item_class); ?>">
       <div class="cdg-custom-link-header">
-        <button type="button" class="cdg-icon-picker-btn" title="<?php esc_attr_e("Choose icon", "cdg-core"); ?>">
-          <span class="dashicons dashicons-<?php echo $icon; ?>" data-icon="<?php echo $icon; ?>"></span>
-        </button>
-        <input type="hidden" name="custom_menu_links[<?php echo $i; ?>][id]"   value="<?php echo $id; ?>">
-        <input type="hidden" name="custom_menu_links[<?php echo $i; ?>][icon]" class="cdg-icon-value" value="<?php echo $icon; ?>">
-        <input type="text"
-               name="custom_menu_links[<?php echo $i; ?>][title]"
-               value="<?php echo $title; ?>"
-               placeholder="<?php esc_attr_e("Link title\xe2\x80\xa6", "cdg-core"); ?>"
-               class="cdg-input cdg-custom-link-title">
-        <button type="button" class="cdg-custom-link-remove cdg-btn-icon" title="<?php esc_attr_e("Remove", "cdg-core"); ?>">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+        <div class="cdg-custom-link-header-top">
+          <button type="button" class="cdg-cli-toggle" title="<?php echo esc_attr($toggle_label); ?>">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          </button>
+          <button type="button" class="cdg-icon-picker-btn" title="<?php esc_attr_e("Choose icon", "cdg-core"); ?>">
+            <span class="dashicons dashicons-<?php echo $icon; ?>" data-icon="<?php echo $icon; ?>"></span>
+          </button>
+          <input type="hidden" name="custom_menu_links[<?php echo $i; ?>][id]"   value="<?php echo $id; ?>">
+          <input type="hidden" name="custom_menu_links[<?php echo $i; ?>][icon]" class="cdg-icon-value" value="<?php echo $icon; ?>">
+          <input type="text"
+                 name="custom_menu_links[<?php echo $i; ?>][title]"
+                 value="<?php echo $title; ?>"
+                 placeholder="<?php esc_attr_e("Link title\xe2\x80\xa6", "cdg-core"); ?>"
+                 class="cdg-input cdg-custom-link-title">
+          <button type="button" class="cdg-custom-link-remove cdg-btn-icon" title="<?php esc_attr_e("Remove", "cdg-core"); ?>">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="cdg-custom-link-meta">
+          <span><?php echo esc_html($url_display); ?></span>
+          <span class="cdg-cli-meta-sep" aria-hidden="true">&middot;</span>
+          <span><?php echo esc_html($target_label); ?></span>
+          <span class="cdg-cli-meta-sep" aria-hidden="true">&middot;</span>
+          <span><?php echo esc_html($hidden_summary); ?></span>
+        </div>
       </div>
       <div class="cdg-custom-link-body">
         <div class="cdg-row">
@@ -1599,6 +1790,54 @@ class CDG_Core_Admin
           return;
         }
 
+        // Pre-pass: total/customized counts for the toolbar, computed the
+        // same way "customized" is decided per-row below (own rename/hide,
+        // or any submenu item's rename/hide).
+        $total_count = count($real);
+        $customized_count = 0;
+        foreach ($real as $slug => $item) {
+          $own_customized = !empty($entry_names[$slug]) || !empty($entry_hidden[$slug]);
+          $sub_customized = false;
+          foreach ((array) ($item["submenu"] ?? []) as $sub_slug => $sub_item) {
+            if (!empty($submenu_names[$slug][$sub_slug]) || !empty($submenu_hidden[$slug][$sub_slug])) {
+              $sub_customized = true;
+              break;
+            }
+          }
+          if ($own_customized || $sub_customized) {
+            $customized_count++;
+          }
+        }
+
+        echo '<div class="cdg-toolbar">';
+        echo '<div class="cdg-search-input"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>';
+        echo '<input type="text" id="cdg-si-search" placeholder="' . esc_attr__("Search menu items\xe2\x80\xa6", "cdg-core") . '"></div>';
+        echo '<button type="button" id="cdg-si-customized-toggle" class="cdg-chip-btn" aria-pressed="false">' .
+          '<span class="cdg-chip-dot"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>' .
+          esc_html__("Customized only", "cdg-core") .
+          "</button>";
+        echo '<span class="cdg-count-chip">' .
+          esc_html(
+            sprintf(
+              /* translators: 1: number of customized items, 2: total number of items */
+              __("%1\$d of %2\$d customized", "cdg-core"),
+              $customized_count,
+              $total_count
+            )
+          ) .
+          "</span>";
+        echo '<div class="cdg-toolbar-spacer"></div>';
+        echo '<button type="button" id="cdg-si-expand-all" class="cdg-text-btn">' .
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>' .
+          esc_html__("Expand all", "cdg-core") .
+          "</button>";
+        echo "</div>";
+
+        echo '<div class="cdg-legend"><span class="cdg-legend-dot"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>' .
+          esc_html__("renamed or hidden from at least one role", "cdg-core") .
+          "</div>";
+
+        echo '<div class="cdg-scroll-region cdg-scroll-region-tall">';
         echo '<div class="cdg-si-list">';
 
         // Column headers.
@@ -1633,8 +1872,11 @@ class CDG_Core_Admin
               }
             }
           }
+
+          $is_customized = !empty($entry_names[$slug]) || !empty($entry_hidden[$slug]) || $sub_has_data;
+          $title_attr    = esc_attr(strtolower($title));
           ?>
-          <div class="cdg-si-row cdg-si-parent<?php echo $sub_has_data ? " cdg-si-parent-open" : ""; ?>" data-slug="<?php echo $slug_attr; ?>">
+          <div class="cdg-si-row cdg-si-parent<?php echo $sub_has_data ? " cdg-si-parent-open" : ""; ?>" data-slug="<?php echo $slug_attr; ?>" data-title="<?php echo $title_attr; ?>" data-customized="<?php echo $is_customized ? "true" : "false"; ?>">
             <div class="cdg-si-main">
               <?php if ($has_subs): ?>
                 <button type="button" class="cdg-si-toggle" data-parent="<?php echo $slug_attr; ?>" aria-expanded="<?php echo $sub_has_data ? "true" : "false"; ?>" title="<?php esc_attr_e("Show submenu items", "cdg-core"); ?>">
@@ -1649,6 +1891,7 @@ class CDG_Core_Admin
                 <span class="dashicons dashicons-admin-generic" aria-hidden="true"></span>
               <?php endif; ?>
               <span class="cdg-si-title"><?php echo esc_html($title); ?></span>
+              <?php if ($is_customized): ?><span class="cdg-si-customized-dot" aria-hidden="true"></span><?php endif; ?>
             </div>
             <div class="cdg-si-rename">
               <input type="text" name="sidebar_entry_names[<?php echo $slug_attr; ?>]"
@@ -1712,7 +1955,11 @@ class CDG_Core_Admin
           <?php endforeach; endif; ?>
           <?php
         }
-        echo "</div>";
+        echo '<div class="cdg-empty" id="cdg-si-empty" style="display:none;">' .
+          esc_html__("No menu items match your search.", "cdg-core") .
+          "</div>";
+        echo "</div>"; // .cdg-si-list
+        echo "</div>"; // .cdg-scroll-region
       }
     );
 
@@ -1769,13 +2016,65 @@ class CDG_Core_Admin
 
         uasort($all_plugins, fn($a, $b) => strcasecmp($a["Name"] ?? "", $b["Name"] ?? ""));
 
+        // "Hide Default WordPress Roles" (Roles tab) means Editor/Author/
+        // Contributor/Subscriber can't be newly assigned — so there's
+        // nothing to configure for them here either. Hidden with CSS, not
+        // omitted from the markup, so the checkboxes still submit their
+        // saved state on Save even while their column is out of view.
+        $hide_native_cols = !empty($s["enable_custom_roles"]) && !empty($s["hide_native_roles"]);
+
+        echo '<div class="cdg-toolbar">';
+        echo '<div class="cdg-search-input"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>';
+        echo '<input type="text" id="cdg-pv-search" placeholder="' . esc_attr__("Search plugins\xe2\x80\xa6", "cdg-core") . '"></div>';
+        echo '<span class="cdg-count-chip">' .
+          esc_html(
+            sprintf(
+              /* translators: %d: number of installed plugins */
+              _n("%d plugin installed", "%d plugins installed", count($all_plugins), "cdg-core"),
+              count($all_plugins)
+            )
+          ) .
+          "</span>";
+        echo "</div>";
+
+        echo '<div class="cdg-legend"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>' .
+          esc_html__("check a role's header box to hide every plugin from that role at once", "cdg-core") .
+          "</div>";
+
+        if ($hide_native_cols) {
+          echo '<div class="cdg-inline-note">' .
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' .
+            "<span>" .
+            wp_kses_post(
+              __(
+                "Editor, Author, Contributor, and Subscriber are hidden here because <strong>Hide Default WordPress Roles</strong> is on &#8212; turn it off on the Roles tab to configure them again.",
+                "cdg-core"
+              )
+            ) .
+            "</span></div>";
+        }
+
+        echo '<div class="cdg-scroll-region' . ($hide_native_cols ? " cdg-pv-hide-native" : "") . '" style="max-height:none;">';
         echo '<div class="cdg-pv-list">';
 
-        // Column headers.
+        // Column headers, each a select-all checkbox for that role.
         echo '<div class="cdg-pv-row cdg-pv-row-head">';
         echo '<div class="cdg-pv-main">' . esc_html__("Plugin", "cdg-core") . "</div>";
-        foreach ($hideable_roles as $label) {
-          echo '<div class="cdg-pv-role-col">' . esc_html($label) . "</div>";
+        foreach ($hideable_roles as $role_slug => $label) {
+          echo '<div class="cdg-pv-role-col cdg-pv-head-role" data-role-col="' . esc_attr($role_slug) . '">';
+          echo '<label class="cdg-pv-head-check" title="' .
+            esc_attr(
+              sprintf(
+                /* translators: %s: role label, e.g. "Manager" */
+                __("Select all \xc2\xb7 %s", "cdg-core"),
+                $label
+              )
+            ) . '">';
+          echo '<input type="checkbox" class="cdg-pv-head-cb" data-role="' . esc_attr($role_slug) . '">';
+          echo '<span class="cdg-check-box"></span>';
+          echo "<span>" . esc_html($label) . "</span>";
+          echo "</label>";
+          echo "</div>";
         }
         echo "</div>";
 
@@ -1783,15 +2082,16 @@ class CDG_Core_Admin
           $name         = $plugin_data["Name"] ?? $plugin_file;
           $hidden_roles = (array) ($hidden_plugins[$plugin_file] ?? []);
           $file_attr    = esc_attr($plugin_file);
+          $title_attr   = esc_attr(strtolower($name));
 
-          echo '<div class="cdg-pv-row">';
+          echo '<div class="cdg-pv-row" data-title="' . $title_attr . '">';
           echo '<div class="cdg-pv-main">';
           echo '<span class="cdg-si-title">' . esc_html($name) . "</span>";
           echo ' <span class="cdg-widget-id">' . esc_html($plugin_file) . "</span>";
           echo "</div>";
 
           foreach ($hideable_roles as $role_slug => $label) {
-            echo '<div class="cdg-pv-role-col">';
+            echo '<div class="cdg-pv-role-col" data-role-col="' . esc_attr($role_slug) . '">';
             echo '<label class="cdg-check-item cdg-check-solo" title="' .
               esc_attr(
                 sprintf(
@@ -1800,7 +2100,7 @@ class CDG_Core_Admin
                   $label
                 )
               ) . '">';
-            echo '<input type="checkbox" name="hidden_plugins[' . $file_attr . '][]" value="' .
+            echo '<input type="checkbox" class="cdg-pv-cb" data-role="' . esc_attr($role_slug) . '" name="hidden_plugins[' . $file_attr . '][]" value="' .
               esc_attr($role_slug) . '"' .
               (in_array($role_slug, $hidden_roles, true) ? " checked" : "") . ">";
             echo '<span class="cdg-check-box"></span>';
@@ -1811,7 +2111,11 @@ class CDG_Core_Admin
           echo "</div>";
         }
 
-        echo "</div>";
+        echo '<div class="cdg-empty" id="cdg-pv-empty" style="display:none;">' .
+          esc_html__("No plugins match your search.", "cdg-core") .
+          "</div>";
+        echo "</div>"; // .cdg-pv-list
+        echo "</div>"; // .cdg-scroll-region
       }
     );
   }
