@@ -147,6 +147,15 @@ class CDG_Core_Documentation
             'show_ui' => true,
             'show_admin_column' => true,
             'show_in_rest' => false,
+            // Without this, show_in_menu defaults to true, which nests the
+            // Categories screen under the post type's OWN menu slug
+            // (edit.php?post_type=cdg_documentation). That only renders when
+            // a post type has its own top-level menu; since it's nested
+            // under Tools (see 'show_in_menu' above in register_post_type),
+            // that slug isn't a real top-level menu and the link is silently
+            // dropped from the sidebar. Pointing straight at 'tools.php'
+            // puts Categories as a sibling of Documentation under Tools.
+            'show_in_menu' => 'tools.php',
         ];
 
         register_taxonomy(self::TAXONOMY, [self::POST_TYPE], $args);
@@ -316,9 +325,14 @@ class CDG_Core_Documentation
      */
     public function add_viewer_pages(): void
     {
-        // View documentation page
+        // View documentation page. Parent must be 'tools.php' directly, not
+        // 'edit.php?post_type=' . self::POST_TYPE — that slug was only a
+        // valid top-level menu while the post type had its own top-level
+        // menu (show_in_menu === true). Since it's nested under Tools now,
+        // that slug is just another submenu entry, not a real menu key, so
+        // a submenu pointed at it is silently dropped from the sidebar.
         add_submenu_page(
-            'edit.php?post_type=' . self::POST_TYPE,
+            'tools.php',
             __('View Documentation', 'cdg-core'),
             __('View', 'cdg-core'),
             'edit_posts',

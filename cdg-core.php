@@ -3,7 +3,7 @@
  * Plugin Name: CDG Core Standalone
  * Plugin URI: https://crawforddesigngroup.com
  * Description: WordPress optimizations, security hardening, and agency features for Crawford Design Group client sites. Divi-free variant with no theme dependency.
- * Version: 1.3.4
+ * Version: 1.3.5
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Author: Crawford Design Group
@@ -36,7 +36,7 @@ if (!class_exists("CDG_Core")) {
 /**
  * Plugin Constants
  */
-define("CDG_CORE_VERSION", "1.3.4");
+define("CDG_CORE_VERSION", "1.3.5");
 define("CDG_CORE_DIR", plugin_dir_path(__FILE__));
 define("CDG_CORE_URL", plugin_dir_url(__FILE__));
 define("CDG_CORE_BASENAME", plugin_basename(__FILE__));
@@ -444,6 +444,9 @@ input[type=text], input[type=email], input[type=url], input[type=password], inpu
     // Security Audit — instantiated outside is_admin() so the wp_login
     // hook (login timestamp recording) fires on the login page as well.
     new CDG_Core_Security_Audit($this);
+
+    // Autoload Audit — Tools page to inspect/toggle autoloaded wp_options.
+    new CDG_Core_Autoload_Audit($this);
 
     // SVG Support - initialize regardless of setting (class checks internally)
     new CDG_Core_SVG_Support($this);

@@ -201,6 +201,11 @@ Auto-updates are not enabled by default. If you want a given site to apply relea
 
 ### Changelog
 
+#### 1.3.5
+
+- Added a **Tools → Autoloaded Options** page: lists the site's autoloaded `wp_options` rows by size (mirroring Site Health's own "Autoloaded options could affect performance" check, including its 800 KB threshold), and lets an admin disable autoload per option with one click. Only the `autoload` column is ever touched — the option's value is never read back or rewritten. A hard-coded list of WordPress-core and CDG Core options (enforced server-side, not just hidden in the UI) can't be disabled from this screen, and every change is logged with a one-click Undo.
+- Fixed a menu regression from 1.3.4's Tools nesting, which that release's own changelog entry incorrectly described as not applying: both the Documentation taxonomy's **Categories** screen and the **View Documentation** page were still registering their submenu under the post type's own slug (`edit.php?post_type=cdg_documentation`), which only renders as a real menu entry when a post type has its own top-level menu. Once the post type moved under Tools, that slug stopped being a valid menu parent and WordPress silently dropped both links from the sidebar — the pages still existed and were reachable by direct URL, just invisible in the nav. Both now point at `tools.php` directly, same as the post type itself.
+
 #### 1.3.4
 
 - Documentation CPT now lives under **Tools → Documentation** instead of its own top-level sidebar menu (`register_post_type()`'s `show_in_menu` set to `'tools.php'`). Its own sub-tabs (viewer pages, categories) are unaffected — they're registered against the post type's own `edit.php?post_type=cdg_documentation` slug regardless of where that slug sits in the menu tree. `menu_position`/`menu_icon`, which only apply to top-level items, were dropped from the registration since they no longer do anything. Sites that used the Sidebar tab to rename/hide Documentation as a top-level entry will need to reconfigure that under Tools's submenu section.
