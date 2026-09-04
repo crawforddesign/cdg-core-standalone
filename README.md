@@ -4,7 +4,7 @@ WordPress optimizations, security hardening, and agency features for Crawford De
 
 > Both plugins (`cdg-core` and `cdg-core-standalone`) share the same PHP class and constant names (`CDG_Core`, `CDG_CORE_VERSION`, etc.), so they must not be active on the same WordPress install at the same time. Each site should run one or the other.
 
-## Version 1.3.3
+## Version 1.3.4
 
 ### Requirements
 
@@ -200,6 +200,10 @@ Installed sites will see the update within ~12 hours (WordPress's normal update-
 Auto-updates are not enabled by default. If you want a given site to apply releases unattended, an admin can turn on "Enable auto-updates" for CDG Core Standalone from that site's Plugins page — this uses WordPress's own fatal-error-protected update path.
 
 ### Changelog
+
+#### 1.3.4
+
+- Documentation CPT now lives under **Tools → Documentation** instead of its own top-level sidebar menu (`register_post_type()`'s `show_in_menu` set to `'tools.php'`). Its own sub-tabs (viewer pages, categories) are unaffected — they're registered against the post type's own `edit.php?post_type=cdg_documentation` slug regardless of where that slug sits in the menu tree. `menu_position`/`menu_icon`, which only apply to top-level items, were dropped from the registration since they no longer do anything. Sites that used the Sidebar tab to rename/hide Documentation as a top-level entry will need to reconfigure that under Tools's submenu section.
 
 #### 1.3.3
 

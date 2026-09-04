@@ -2309,7 +2309,7 @@ class CDG_Core_Admin
         echo '<div class="cdg-guide-body cdg-guide-group">';
         $this->guide_item(
           "Documentation CPT",
-          "Registers a <code>cdg_documentation</code> post type with category and tag taxonomies. Articles are created under the Documentation menu and can be assigned to categories. Disable this if the site does not need an internal knowledge base."
+          "Registers a <code>cdg_documentation</code> post type with category and tag taxonomies. Articles are created under Tools &rsaquo; Documentation and can be assigned to categories. Disable this if the site does not need an internal knowledge base."
         );
         $this->guide_item(
           "Dashboard Widgets",

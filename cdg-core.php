@@ -3,7 +3,7 @@
  * Plugin Name: CDG Core Standalone
  * Plugin URI: https://crawforddesigngroup.com
  * Description: WordPress optimizations, security hardening, and agency features for Crawford Design Group client sites. Divi-free variant with no theme dependency.
- * Version: 1.3.3
+ * Version: 1.3.4
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Author: Crawford Design Group
@@ -36,7 +36,7 @@ if (!class_exists("CDG_Core")) {
 /**
  * Plugin Constants
  */
-define("CDG_CORE_VERSION", "1.3.3");
+define("CDG_CORE_VERSION", "1.3.4");
 define("CDG_CORE_DIR", plugin_dir_path(__FILE__));
 define("CDG_CORE_URL", plugin_dir_url(__FILE__));
 define("CDG_CORE_BASENAME", plugin_basename(__FILE__));

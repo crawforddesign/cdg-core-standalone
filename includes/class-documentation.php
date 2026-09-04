@@ -106,9 +106,11 @@ class CDG_Core_Documentation
             'hierarchical' => false,
             'public' => false,
             'show_ui' => true,
-            'show_in_menu' => true,
-            'menu_position' => 25,
-            'menu_icon' => 'dashicons-media-document',
+            // Nested under Tools rather than its own top-level menu item —
+            // 'menu_position'/'menu_icon' are ignored once show_in_menu is a
+            // parent slug, so they're intentionally omitted rather than left
+            // in as dead config.
+            'show_in_menu' => 'tools.php',
             'show_in_admin_bar' => true,
             'can_export' => true,
             'has_archive' => false,
