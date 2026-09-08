@@ -147,15 +147,18 @@ class CDG_Core_Documentation
             'show_ui' => true,
             'show_admin_column' => true,
             'show_in_rest' => false,
-            // Without this, show_in_menu defaults to true, which nests the
-            // Categories screen under the post type's OWN menu slug
-            // (edit.php?post_type=cdg_documentation). That only renders when
-            // a post type has its own top-level menu; since it's nested
-            // under Tools (see 'show_in_menu' above in register_post_type),
-            // that slug isn't a real top-level menu and the link is silently
-            // dropped from the sidebar. Pointing straight at 'tools.php'
-            // puts Categories as a sibling of Documentation under Tools.
-            'show_in_menu' => 'tools.php',
+            // Explicitly false rather than left at the default (true): WP
+            // core only ever reads a taxonomy's own show_in_menu from the
+            // per-post-type loop in wp-admin/menu.php, and that loop only
+            // runs for post types with their OWN top-level menu (show_in_menu
+            // === true, checked strictly). Since this post type is nested
+            // under Tools instead, that loop — and this value — are never
+            // reached; wp-includes/taxonomy.php has no add_submenu_page()
+            // call of its own (unlike post types, which get one via
+            // _add_post_type_submenus() in wp-includes/post.php). The
+            // Categories link is added manually below in add_viewer_pages()
+            // instead, the same way View Documentation is.
+            'show_in_menu' => false,
         ];
 
         register_taxonomy(self::TAXONOMY, [self::POST_TYPE], $args);
@@ -338,6 +341,23 @@ class CDG_Core_Documentation
             'edit_posts',
             'cdg-view-doc',
             [$this, 'render_viewer']
+        );
+
+        // Categories screen. WordPress core has no automatic mechanism for
+        // this — see the 'show_in_menu' => false comment in
+        // register_taxonomy() above — so it's added by hand, pointed at the
+        // real edit-tags.php screen (no callback needed; that's a native WP
+        // admin page, not one of ours). Capability is read from the taxonomy
+        // itself rather than hardcoded, so it stays correct if that's ever
+        // customized; 'manage_categories' is register_taxonomy()'s own
+        // default and only used here as a defensive fallback.
+        $taxonomy = get_taxonomy(self::TAXONOMY);
+        add_submenu_page(
+            'tools.php',
+            __('Documentation Categories', 'cdg-core'),
+            __('Categories', 'cdg-core'),
+            $taxonomy ? $taxonomy->cap->manage_terms : 'manage_categories',
+            'edit-tags.php?taxonomy=' . self::TAXONOMY . '&post_type=' . self::POST_TYPE
         );
 
         // Hidden category archive page

@@ -201,6 +201,10 @@ Auto-updates are not enabled by default. If you want a given site to apply relea
 
 ### Changelog
 
+#### 1.3.6
+
+- Fixed the Documentation **Categories** link, still missing from Tools after 1.3.5's fix. That fix set the taxonomy's own `show_in_menu` to `'tools.php'`, but WordPress core never actually reads that value in this configuration: the only place a taxonomy's `show_in_menu` gets turned into a submenu link is a loop in `wp-admin/menu.php` that runs solely for post types with their own top-level menu (`show_in_menu === true`, checked strictly) — and post types nested under an existing menu (like Documentation under Tools) skip that loop entirely. Unlike post types, which get a dedicated fallback (`_add_post_type_submenus()` in `wp-includes/post.php`) for exactly this nested case, taxonomies have no such fallback in core. Categories is now added the same way View Documentation already is: a manual `add_submenu_page( 'tools.php', ... )` call pointed at the real `edit-tags.php` screen.
+
 #### 1.3.5
 
 - Added a **Tools → Autoloaded Options** page: lists the site's autoloaded `wp_options` rows by size (mirroring Site Health's own "Autoloaded options could affect performance" check, including its 800 KB threshold), and lets an admin disable autoload per option with one click. Only the `autoload` column is ever touched — the option's value is never read back or rewritten. A hard-coded list of WordPress-core and CDG Core options (enforced server-side, not just hidden in the UI) can't be disabled from this screen, and every change is logged with a one-click Undo.
